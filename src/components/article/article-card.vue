@@ -1,29 +1,57 @@
 <template>
   <el-card class="article-card">
-    <div class="article-info">
-      <img :src="authorAvatar" class="author-avatar" alt="作者头像">
-      <div>
-        <h2 class="article-title">{{ title }}</h2>
-        <p class="author-name">{{ authorName }}</p>
-        <p class="publish-time">{{ publishTime }}</p>
+    <div class="card-content">
+      <div class="left-content">
+        <div class="article-info">
+          <div>
+            <h2 class="article-title">{{ title }}</h2>
+            <p class="publish-time">{{ publishTime }}</p>
+          </div>
+        </div>
+        <div class="article-stats">
+          <div class="icon-stat">
+            <el-tooltip content="浏览量">
+              <img src="../../../public/image/icon/view.svg" alt="view icon" class="input-icon"/>
+            </el-tooltip>
+            <span>{{ views }}</span>
+          </div>
+          <div class="icon-stat">
+            <el-tooltip content="点赞量">
+              <img src="../../../public/image/icon/like_disable.svg" alt="thumb icon" class="input-icon"/>
+            </el-tooltip>
+            <span>{{ likes }}</span>
+          </div>
+          <div class="icon-stat">
+            <el-tooltip content="评论量">
+              <img src="../../../public/image/icon/comment.svg" alt="comment icon" class="input-icon"/>
+            </el-tooltip>
+            <span>{{ comments }}</span>
+          </div>
+          <div class="icon-stat">
+            <el-tooltip content="收藏量">
+              <img src="../../../public/image/icon/collect_disable.svg" alt="star icon" class="input-icon"/>
+            </el-tooltip>
+            <span>{{ collects }}</span>
+          </div>
+          <div class="icon-stat">
+            <el-tooltip content="转发量">
+              <img src="../../../public/image/icon/share.svg" alt="star icon" class="input-icon"/>
+            </el-tooltip>
+            <span>{{ forwards }}</span>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="article-stats">
-      <p>浏览量: {{ views }}</p>
-      <p>点赞数: {{ likes }}</p>
-      <p>转发数: {{ shares }}</p>
-      <p>评论数: {{ comments }}</p>
-    </div>
-    <div class="article-actions">
-      <el-button icon="el-icon-thumb" @click="likeArticle">点赞</el-button>
-      <el-button icon="el-icon-message" @click="commentArticle">评论</el-button>
-      <el-button icon="el-icon-share" @click="shareArticle">转发</el-button>
+      <div class="right-content">
+        <img src="http://localhost:8080/user-profile/get-avatar/xiaoliangzi" class="author-avatar" alt="作者头像" @click="goToUserProfile(author)">
+        <p class="author-name">{{ author }}</p>
+      </div>
     </div>
   </el-card>
 </template>
 
 <script>
 import axios from 'axios'
+import Cookies from 'js-cookie'
 
 export default {
   name: 'ArticleCard',
@@ -38,7 +66,7 @@ export default {
       shares: '',
       comments: '',
       collects:'',
-      forwords:''
+      forwards:''
     }
   },
 
@@ -58,11 +86,19 @@ export default {
       this.comments = article.comments
       this.collects=article.collects
       this.forwards=article.forwards
+
+      Cookies.set('article-title', this.title)
+      Cookies.set('article-author', this.author)
+      Cookies.set('article-id', articleId)
     }).catch(error => {
       console.log(error)
     })
   },
+
   methods: {
+    goToUserProfile(username) {
+      this.$router.push({ name: 'UserProfile', params: { username: username } });
+    },
     likeArticle() {
       // 点赞文章的逻辑
     },
@@ -77,20 +113,12 @@ export default {
 </script>
 
 <style scoped>
-.article-stats {
-  background-color: #f2f2f2; /* 浅灰色背景 */
-  color: #333; /* 深色文字 */
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.article-actions {
-  background-color: #f2f2f2; /* 浅灰色背景 */
-  color: #333; /* 深色文字 */
-  padding: 10px;
-  border-radius: 5px;
-  display: flex;
-  justify-content: space-around;
+.author-avatar {
+  width: 100px;  /* 将头像大小调小 */
+  height: 100px;  /* 将头像大小调小 */
+  border-radius: 50%;  /* 将头像变为圆形 */
+  margin-bottom: 30px;
+  margin-right: 20px;
 }
 
 .article-actions .el-button {
@@ -101,4 +129,44 @@ export default {
   color: #fff; /* 鼠标悬停时的文字颜色 */
   background-color: #333; /* 鼠标悬停时的背景颜色 */
 }
+
+.article-stats {
+  display: flex;
+  flex-direction: row;  /* 设置为水平排列 */
+  justify-content: flex-start;  /* 从左开始排列 */
+  align-items: center;
+}
+
+.input-icon {
+  width: 15px;  /* 将图标大小调小 */
+  height: 15px;  /* 将图标大小调小 */
+  padding: 0 10px;
+}
+
+.icon-stat {
+  margin-right: 10px;  /* 添加右边距 */
+}
+
+.card-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.left-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.right-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.author-avatar,
+.author-name {
+  margin: auto;
+}
+
 </style>

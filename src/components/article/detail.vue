@@ -1,5 +1,5 @@
 <template>
-  <v-md-preview :text="markdownContent"></v-md-preview>
+  <v-md-preview :text="markdownContent" ></v-md-preview>
 </template>
 
 <script>
@@ -16,6 +16,7 @@ export default {
   },
   mounted() {
     this.fetchMarkdownContent();
+    this.updateArticleViews();
   },
   watch: {
     markdownContent(newContent) {
@@ -33,6 +34,23 @@ export default {
             console.error('Error fetching Markdown content:', error);
           });
     },
+    updateArticleViews() {
+      axios.put(`http://localhost:8080/blog/update-article-views/${this.$route.params.id}`)
+          .then(response => {
+            if (response.data.status === 200) {
+              console.log('Article views updated successfully');
+            } else {
+              console.error('Failed to update article views: ' + response.data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error updating article views:', error);
+          });
+    },
   },
 };
 </script>
+
+<style scoped>
+
+</style>

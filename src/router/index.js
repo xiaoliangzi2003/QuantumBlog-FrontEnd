@@ -41,6 +41,11 @@ const router =  createRouter({
             name: 'ArticleDetail',
             component: defineAsyncComponent(() => import('../views/article/article-detail.vue')),
             props: true
+        },
+        {
+            path: '/user/:username',
+            name: 'UserProfile',
+            component: () => import('../views/User/UserProfile.vue')
         }
     ]
 });

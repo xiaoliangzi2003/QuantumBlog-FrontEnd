@@ -169,6 +169,7 @@ export default {
       axios.post("http://localhost:8080/auth/send-email",{
         email:this.emailRegisterForm.email,
         subject:'您的登录验证码已发送，请在5分钟内使用,如非本人操作，请忽略本邮件。',
+        to:this.emailRegisterForm.email
       })
           .then(response=>{
               console.log(response);

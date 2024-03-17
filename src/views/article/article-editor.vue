@@ -24,15 +24,15 @@
       <el-main class="editor-main">
         <el-card class="box-card">
           <el-card class="article-brief">
-            <el-form :model="form">
+            <el-form :model="form" class="label-form" label-width="100px">
               <el-form-item label="文章标题">
-                <el-input v-model="form.title"></el-input>
+                <el-input v-model="form.title" class="input-item"></el-input>
               </el-form-item>
               <el-form-item label="作者名">
-                <el-input v-model="form.author" :disabled="true"></el-input>
+                <el-input v-model="form.author" :disabled="false" class="input-item"></el-input>
               </el-form-item>
               <el-form-item label="分类">
-                <el-select v-model="form.category" placeholder="请选择">
+                <el-select v-model="form.category" placeholder="请选择" class="input-item">
                   <el-option
                       v-for="item in categories"
                       :key="item"
@@ -41,7 +41,7 @@
                   </el-option>
                 </el-select>
               </el-form-item>
-              <el-form-item label="标签">
+              <el-form-item label="标签" class="input-item">
                 <el-tag
                     v-for="(tag, index) in form.tags"
                     :key="index"
@@ -51,9 +51,19 @@
                   {{ tag }}
                 </el-tag>
                 <el-input
-                    v-model="input"
+                    v-model = "form.input"
                     @keyup.enter.native="handleInputConfirm"
                     placeholder="请输入标签，按Enter确认"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="文章简介" class="input-item">
+                <el-input
+                    type="textarea"
+                    :rows="2"
+                    placeholder="请输入文章简介，100字以内"
+                    v-model="form.description"
+                    :show-word-limit="true"
+                    :maxlength="100"
                 ></el-input>
               </el-form-item>
             </el-form>
@@ -88,18 +98,21 @@
 <script>
 import ArticleEditor from '../../components/article/editor.vue'
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 export default {
   data() {
     return {
       form: {
         title: '',
-        author: 'xiaoliangzi',
+        author: Cookies.get('username') || '',
         category: '',
         tags: [],
+        input:'',
         isPublic: true,
         isScheduled: false,
         scheduleTime: '',
+        description: '',
       },
       categories: ['知识' , '科学', '脑洞', '游戏', '财经', '心理', '故事', '职场', '旅行', '法律', '国际', '美食', '动画', '宠物', '时尚', '时事', '健康', '体育']
     };
@@ -107,18 +120,39 @@ export default {
   components: {
     ArticleEditor
   },
+  created(){
+    this.form.author = Cookies.get('username') || '';
+  },
   methods:{
     handleInputConfirm() {
-      let input = this.input;
-      if (input) {
-        this.form.tags.push(input);
+      if (this.form.input.trim() !== '') {
+        // 添加标签到数组
+        this.form.tags.push(this.form.input.trim());
+        // 清空输入框
+        this.form.input='';
       }
-      this.input = '';
     },
     handleClose(index) {
       this.form.tags.splice(index, 1);
     },
     publish(){
+      const paragraphs = this.$refs.articleEditor.text.split('\n');
+      for (const paragraph of paragraphs) {
+        if (!paragraph.startsWith('#') && // 排除标题
+            !paragraph.startsWith('---') && // 排除分隔线
+            !paragraph.includes('<!--') && // 排除注释
+            !paragraph.startsWith('```') && // 排除代码段
+            !paragraph.includes('![') && // 排除图片
+            !(paragraph.includes('|') && paragraph.includes('-')) && // 排除表格
+            !paragraph.startsWith('$$')) { // 排除数学公式
+          this.form.description += paragraph + ' ';
+          if (this.form.description.length >= 100) {
+            // 如果提取的正文部分超过100个字符，截取前100个字符
+            this.form.description = this.form.description.slice(0, 100);
+            break;
+          }
+        }
+      }
       if (!this.form.title || !this.form.author || !this.$refs.articleEditor.text) {
         this.$message.error('标题、作者和内容不能为空');
         return;
@@ -138,6 +172,7 @@ export default {
         isScheduled: this.form.isScheduled,
         scheduleTime: this.form.scheduleTime,
         content:this.$refs.articleEditor.text,
+        summary:this.form.description,
       };
       axios.post('http://localhost:8080/blog/publish-article',article)
           .then(response=>{
@@ -151,7 +186,10 @@ export default {
 </script>
 
 <style scoped>
-
+.input-item{
+  width: 100%;
+  text-align: right;
+}
 .day-picker{
   padding-left:5px;
 }
